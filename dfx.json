@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "digivoter_backend": {
+      "candid": "src/digivoter_backend/digivoter_backend.did",
+      "package": "digivoter_backend",
+      "type": "rust"
+    },
+    "digivoter_frontend": {
+      "dependencies": [
+        "digivoter_backend"
+      ],
+      "source": [
+        "src/digivoter_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "digivoter_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
