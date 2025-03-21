@@ -9,11 +9,14 @@
       "dependencies": [
         "digivoter_backend"
       ],
+      "frontend": {
+        "entrypoint": "src/digivoter_frontend/src/index.html"
+      },
       "source": [
-        "src/digivoter_frontend/dist"
+        "src/digivoter_frontend/assets",
+        "dist/digivoter_frontend/"
       ],
-      "type": "assets",
-      "workspace": "digivoter_frontend"
+      "type": "assets"
     }
   },
   "defaults": {

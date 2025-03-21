@@ -1,31 +1,51 @@
-import { useState } from 'react';
-import { digivoter_backend } from 'declarations/digivoter_backend';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Elections from './pages/Elections';
+import ElectionDetails from './pages/ElectionDetails';
+import CreateElection from './pages/CreateElection';
+import Results from './pages/Results';
+import VerifyVote from './pages/VerifyVote';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const [greeting, setGreeting] = useState('');
+  const { isLoading } = useAuth();
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    digivoter_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
+  if (isLoading) {
+    return <div className="loading-screen">Loading...</div>;
   }
 
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
-    </main>
+    <div className="app">
+      <Navbar />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/elections" element={<Elections />} />
+          <Route path="/elections/:id" element={<ElectionDetails />} />
+          <Route path="/results/:id" element={<Results />} />
+          <Route path="/verify" element={<VerifyVote />} />
+          <Route path="/login" element={<Login />} />
+          <Route 
+            path="/create-election" 
+            element={
+              <ProtectedRoute>
+                <CreateElection />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </main>
+      <footer className="footer">
+        <p>© {new Date().getFullYear()} DigiVoter - Secure Decentralized Voting on the Internet Computer</p>
+      </footer>
+    </div>
   );
 }
+
+
 
 export default App;

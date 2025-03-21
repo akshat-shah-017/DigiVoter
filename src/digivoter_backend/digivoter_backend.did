@@ -1,3 +1,49 @@
+type Election = record {
+    id: text;
+    title: text;
+    description: text;
+    options: vec text;
+    start_time: nat64;
+    end_time: nat64;
+    status: text;
+};
+
+type Vote = record {
+    election_id: text;
+    option_index: nat32;
+    voter_id: text;
+    timestamp: nat64;
+    verification_hash: text;
+};
+
+type ElectionResult = record {
+    election_id: text;
+    title: text;
+    options: vec text;
+    vote_counts: vec nat64;
+    total_votes: nat64;
+};
+
+type VoteReceipt = record {
+    verification_hash: text;
+    timestamp: nat64;
+};
+
 service : {
-    "greet": (text) -> (text) query;
+    // Election Management
+    create_election: (text, text, vec text, nat64, nat64) -> (text);
+    get_elections: () -> (vec Election) query;
+    get_election: (text) -> (opt Election) query;
+    
+    // Voting
+    cast_vote: (text, nat32) -> (VoteReceipt);
+    verify_vote: (text) -> (bool) query;
+    
+    // Results
+    get_election_results: (text) -> (opt ElectionResult) query;
+    
+    // Admin Functions
+    start_election: (text) -> (bool);
+    end_election: (text) -> (bool);
 }
+

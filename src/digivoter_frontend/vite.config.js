@@ -8,6 +8,7 @@ dotenv.config({ path: '../../.env' });
 
 export default defineConfig({
   build: {
+    outDir: '../../dist/digivoter_frontend',
     emptyOutDir: true,
   },
   optimizeDeps: {
@@ -29,6 +30,16 @@ export default defineConfig({
     react(),
     environment("all", { prefix: "CANISTER_" }),
     environment("all", { prefix: "DFX_" }),
+    {
+      name: 'inject-env',
+      config: () => ({
+        define: {
+          'process.env.CANISTER_ID_DIGIVOTER_BACKEND': JSON.stringify("bkyz2-fmaaa-aaaaa-qaaaq-cai"),
+          'process.env.CANISTER_ID_DIGIVOTER_FRONTEND': JSON.stringify("bd3sg-teaaa-aaaaa-qaaba-cai"),
+          'process.env.DFX_NETWORK': JSON.stringify("local"),
+        }
+      })
+    }
   ],
   resolve: {
     alias: [
