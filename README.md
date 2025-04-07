@@ -105,6 +105,7 @@ Once the application is running in your browser:
 
 ## 🗺️ Project Structure
 
+```text
 digivoter/
 ├── .gitignore              # Specifies intentionally untracked files for Git
 ├── dfx.json                # DFINITY SDK project configuration (defines canisters)
