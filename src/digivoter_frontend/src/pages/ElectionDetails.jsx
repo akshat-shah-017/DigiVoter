@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Actor, HttpAgent } from '@dfinity/agent';
 import { digivoter_backend } from "../../../declarations/digivoter_backend";
 
 function ElectionDetails() {
@@ -19,28 +18,30 @@ function ElectionDetails() {
   useEffect(() => {
     async function fetchElection() {
       try {
-        const agent = new HttpAgent({ identity });
-        if (process.env.NODE_ENV !== 'production') {
-          agent.fetchRootKey();
-        }
+        console.log("Fetching election with ID:", id);
+        const result = await digivoter_backend.get_election(id);
+        console.log("Election data received:", result);
         
-        const actor = Actor.createActor(idlFactory, {
-          agent,
-          canisterId: process.env.DIGIVOTER_BACKEND_CANISTER_ID,
-        });
-        
-        const result = await actor.get_election(id);
-        
-        if (!result.length) {
+        if (!result) {
           setError('Election not found');
           return;
         }
         
-        setElection(result[0]);
-        
-        // Redirect if election is not active
-        if (result[0].status !== 'active') {
-          navigate(`/results/${id}`);
+        // Handle the case where result is an array
+        if (Array.isArray(result) && result.length > 0) {
+          setElection(result[0]);
+          
+          // Only redirect if election is not active
+          if (result[0].status && result[0].status !== 'active') {
+            navigate(`/results/${id}`);
+          }
+        } else {
+          setElection(result);
+          
+          // Only redirect if election is not active
+          if (result.status && result.status !== 'active') {
+            navigate(`/results/${id}`);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch election:", err);
@@ -49,6 +50,7 @@ function ElectionDetails() {
         setIsLoading(false);
       }
     }
+    
     
     fetchElection();
   }, [id, identity, navigate]);
@@ -63,17 +65,10 @@ function ElectionDetails() {
     setError('');
     
     try {
-      const agent = new HttpAgent({ identity });
-      if (process.env.NODE_ENV !== 'production') {
-        agent.fetchRootKey();
-      }
-      
-      const actor = digivoter_backend.get_elections(idlFactory, {
-        agent,
-        canisterId: process.env.DIGIVOTER_BACKEND_CANISTER_ID,
-      });
-      
+      console.log("Casting vote for election:", id, "option:", selectedOption);
+      // Make sure your backend has this function implemented
       const result = await digivoter_backend.cast_vote(id, selectedOption);
+      console.log("Vote cast successfully, receipt:", result);
       setReceipt(result);
     } catch (err) {
       console.error("Failed to cast vote:", err);
@@ -148,6 +143,20 @@ function ElectionDetails() {
     );
   }
 
+  if (!election) {
+    return (
+      <div className="error-container">
+        <div className="error-message">Election not found</div>
+        <button 
+          onClick={() => navigate('/elections')}
+          className="btn btn-primary"
+        >
+          Back to Elections
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="election-details-container">
       <h1>{election.title}</h1>
@@ -161,7 +170,7 @@ function ElectionDetails() {
         <h2>Cast Your Vote</h2>
         
         <div className="voting-options">
-          {election.options.map((option, index) => (
+          {Array.isArray(election.options) && election.options.map((option, index) => (
             <div key={index} className="option-item">
               <label className="option-label">
                 <input
@@ -192,7 +201,7 @@ function ElectionDetails() {
           <li>Your vote is anonymous and cannot be traced back to you.</li>
           <li>You can only vote once per election.</li>
           <li>After voting, you will receive a verification hash to confirm your vote was counted.</li>
-          <li>The election ends on {new Date(Number(election.end_time) / 1000000).toLocaleString()}.</li>
+          <li>The election ends on {election.end_time ? new Date(Number(election.end_time) / 1000000).toLocaleString() : 'N/A'}.</li>
         </ul>
       </div>
     </div>

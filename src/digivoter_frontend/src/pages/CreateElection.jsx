@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
 import { digivoter_backend } from "../../../declarations/digivoter_backend";
 
 function CreateElection() {
@@ -70,7 +69,6 @@ function CreateElection() {
     
     try {
       console.log("Initializing actor for election creation");
-      const actor = API.initializeActor(identity);
       console.log("Actor initialized, creating election");
       const electionId = await digivoter_backend.create_election(
         title,
@@ -80,7 +78,14 @@ function CreateElection() {
         BigInt(endTime)
       );
       console.log("Election created successfully, ID:", electionId);
-      navigate('/elections');
+      
+      // Add a try-catch specifically for navigation
+      try {
+        navigate('/elections');
+      } catch (navError) {
+        console.error("Navigation error:", navError);
+        setError('Election created but navigation failed. Please go to Elections page manually.');
+      }
     } catch (err) {
       console.error("Failed to create election:", err);
       if (err instanceof Error) {
@@ -92,7 +97,6 @@ function CreateElection() {
     } finally {
       setIsSubmitting(false);
     }
-    
   };
 
   return (

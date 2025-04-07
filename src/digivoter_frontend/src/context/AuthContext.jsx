@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
+import { digivoter_backend } from "../../../declarations/digivoter_backend";
 
 const AuthContext = createContext();
 
@@ -13,10 +14,26 @@ export function AuthProvider({ children }) {
   const [identity, setIdentity] = useState(null);
   const [principal, setPrincipal] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);  // Moved inside the component
 
   useEffect(() => {
     initAuth();
   }, []);
+
+  useEffect(() => {
+    async function checkAdminStatus() {
+      if (isAuthenticated && principal) {
+        try {
+          const result = await digivoter_backend.is_admin(principal);
+          setIsAdmin(result);
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+        }
+      }
+    }
+    
+    checkAdminStatus();
+  }, [isAuthenticated, principal]);  // Moved inside the component
 
   async function initAuth() {
     try {
@@ -45,36 +62,35 @@ export function AuthProvider({ children }) {
     }
   }
 
-async function login() {
-  return new Promise((resolve) => {
-    const isLocalDevelopment = window.location.hostname === 'localhost' || 
-                              window.location.hostname.includes('127.0.0.1');
-    
-    const identityProvider = isLocalDevelopment 
-      ? `http://${window.location.hostname}:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai` 
-      : process.env.II_URL || 'https://identity.ic0.app';
-    
-    console.log("Using identity provider:", identityProvider);
-    
-    authClient.login({
-      identityProvider,
-      maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days in nanoseconds
-      onSuccess: async () => {
-        const identity = authClient.getIdentity();
-        setIsAuthenticated(true);
-        setIdentity(identity);
-        setPrincipal(identity.getPrincipal());
-        console.log("Login successful, principal:", identity.getPrincipal().toString());
-        resolve(true);
-      },
-      onError: (error) => {
-        console.error('Login failed:', error);
-        resolve(false);
-      }
+  async function login() {
+    return new Promise((resolve) => {
+      const isLocalDevelopment = window.location.hostname === 'localhost' || 
+                               window.location.hostname.includes('127.0.0.1');
+      
+      const identityProvider = isLocalDevelopment 
+        ? `http://${window.location.hostname}:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai` 
+        : process.env.II_URL || 'https://identity.ic0.app';
+      
+      console.log("Using identity provider:", identityProvider);
+      
+      authClient.login({
+        identityProvider,
+        maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days in nanoseconds
+        onSuccess: async () => {
+          const identity = authClient.getIdentity();
+          setIsAuthenticated(true);
+          setIdentity(identity);
+          setPrincipal(identity.getPrincipal());
+          console.log("Login successful, principal:", identity.getPrincipal().toString());
+          resolve(true);
+        },
+        onError: (error) => {
+          console.error('Login failed:', error);
+          resolve(false);
+        }
+      });
     });
-  });
-}
-
+  }
 
   async function logout() {
     try {
@@ -82,6 +98,7 @@ async function login() {
       setIsAuthenticated(false);
       setIdentity(null);
       setPrincipal(null);
+      setIsAdmin(false);
       console.log("Logout successful");
     } catch (error) {
       console.error("Error during logout:", error);
@@ -93,6 +110,7 @@ async function login() {
     identity,
     principal,
     isLoading,
+    isAdmin,
     login,
     logout
   };

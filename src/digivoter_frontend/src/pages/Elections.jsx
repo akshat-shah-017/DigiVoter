@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Actor, HttpAgent } from '@dfinity/agent';
 import { digivoter_backend } from "../../../declarations/digivoter_backend";
 
 function Elections() {
@@ -13,18 +12,16 @@ function Elections() {
   useEffect(() => {
     async function fetchElections() {
       try {
-        const agent = new HttpAgent({ identity });
-        if (process.env.NODE_ENV !== 'production') {
-          agent.fetchRootKey();
+        console.log("Fetching all elections");
+        const result = await digivoter_backend.get_elections();
+        console.log("Elections fetched:", result);
+        
+        if (Array.isArray(result)) {
+          setElections(result);
+        } else {
+          console.error("Expected array of elections but got:", result);
+          setElections([]);
         }
-        
-        const actor = Actor.createActor(idlFactory, {
-          agent,
-          canisterId: process.env.DIGIVOTER_BACKEND_CANISTER_ID,
-        });
-        
-        const result = await actor.get_elections();
-        setElections(result);
       } catch (err) {
         console.error("Failed to fetch elections:", err);
         setError("Failed to load elections. Please try again later.");
@@ -71,15 +68,19 @@ function Elections() {
                   <time>{new Date(Number(election.end_time) / 1000000).toLocaleString()}</time>
                 </div>
               </div>
-              {election.status === "active" ? (
-                <Link to={`/elections/${election.id}`} className="btn btn-primary">Vote Now</Link>
-              ) : (
-                <Link to={`/results/${election.id}`} className="btn btn-outline">View Results</Link>
-              )}
+              <div className="election-actions">
+                {election.status === "active" ? (
+                  <Link to={`/elections/${election.id}`} className="btn btn-primary">Vote Now</Link>
+                ) : (
+                  <Link to={`/results/${election.id}`} className="btn btn-outline">View Results</Link>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
+      
+      
     </div>
   );
 }

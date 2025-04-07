@@ -10,6 +10,8 @@ import Results from './pages/Results';
 import VerifyVote from './pages/VerifyVote';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminControls from './pages/AdminControls';
+
 
 function App() {
   const { isLoading } = useAuth();
@@ -37,6 +39,15 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          {/* Add the admin route */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute isAdmin={true}>
+                <AdminControls />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
       <footer className="footer">
@@ -45,7 +56,5 @@ function App() {
     </div>
   );
 }
-
-
 
 export default App;

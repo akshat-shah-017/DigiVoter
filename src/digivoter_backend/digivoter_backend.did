@@ -44,6 +44,9 @@ service : {
     
     // Admin Functions
     start_election: (text) -> (bool);
-    end_election: (text) -> (bool);
+    end_election: (text) -> (variant { Ok: null; Err: text });
+    activate_election: (text) -> (variant { Ok: null; Err: text });
+    delete_election: (text) -> (variant { Ok: null; Err: text });
+    add_admin: (principal) -> (variant { Ok: null; Err: text });
+    is_admin: (principal) -> (bool) query;
 }
-

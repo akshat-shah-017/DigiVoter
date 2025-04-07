@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Actor, HttpAgent } from '@dfinity/agent';
+import { HttpAgent } from '@dfinity/agent';
 import { digivoter_backend } from "../../../declarations/digivoter_backend";
 
 function Results() {
@@ -21,25 +21,30 @@ function Results() {
           agent.fetchRootKey();
         }
         
-        const actor = digivoter_backend.get_election_results(idlFactory, {
-          agent,
-          canisterId: process.env.DIGIVOTER_BACKEND_CANISTER_ID,
-        });
-        
-        const electionResult = await actor.get_election(id);
-        if (!electionResult.length) {
+        const electionResult = await digivoter_backend.get_election(id);
+        if (!electionResult) {
           setError('Election not found');
           setIsLoading(false);
           return;
         }
         
-        setElection(electionResult[0]);
+        // Handle the case where result is an array
+        const electionData = Array.isArray(electionResult) && electionResult.length > 0 
+          ? electionResult[0] 
+          : electionResult;
+        
+        setElection(electionData);
         
         // Then get the results if the election is completed
-        if (electionResult[0].status === 'completed') {
+        if (electionData.status === 'completed') {
           const results = await digivoter_backend.get_election_results(id);
-          if (results.length) {
-            setElectionResults(results[0]);
+          // Handle the case where results is an array
+          const resultsData = Array.isArray(results) && results.length > 0
+            ? results[0]
+            : results;
+            
+          if (resultsData) {
+            setElectionResults(resultsData);
           }
         }
       } catch (err) {
@@ -85,6 +90,19 @@ function Results() {
     );
   }
 
+  // Format the end time properly
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    try {
+      // Divide by 1,000,000 to convert nanoseconds to milliseconds
+      const date = new Date(Number(timestamp) / 1000000);
+      return date.toLocaleString();
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return 'Invalid Date';
+    }
+  };
+
   return (
     <div className="results-container">
       <h1>{election.title}</h1>
@@ -99,7 +117,7 @@ function Results() {
             Current status: <span className="status-label">{election.status}</span>
           </p>
           <p className="end-time">
-            End time: {new Date(Number(election.end_time) / 1000000).toLocaleString()}
+            End time: {formatDate(election.end_time)}
           </p>
         </div>
       ) : !electionResults ? (
@@ -117,27 +135,28 @@ function Results() {
           </div>
           
           <div className="results-list">
-            {electionResults.options.map((option, index) => {
-              const voteCount = electionResults.vote_counts[index] || 0;
-              const percentage = electionResults.total_votes > 0 
-                ? (voteCount / electionResults.total_votes * 100).toFixed(2) 
-                : 0;
+              {electionResults.options.map((option, index) => {
+                const voteCount = electionResults.vote_counts[index] || 0n;
+                const percentage = electionResults.total_votes > 0 
+                  ? (Number(voteCount) / Number(electionResults.total_votes) * 100).toFixed(2) 
+                  : 0;
+                
+                return (
+                  <div key={index} className="result-item">
+                    <div className="result-header">
+                      <span className="option-name">{option}</span>
+                      <span className="vote-stats">{voteCount.toString()} votes ({percentage}%)</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
               
-              return (
-                <div key={index} className="result-item">
-                  <div className="result-header">
-                    <span className="option-name">{option}</span>
-                    <span className="vote-stats">{voteCount.toString()} votes ({percentage}%)</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
-                      style={{ width: `${percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       )}

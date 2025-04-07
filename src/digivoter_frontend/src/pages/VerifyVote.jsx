@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
+import { digivoter_backend } from '../../../declarations/digivoter_backend';
+
 
 function VerifyVote() {
   const [verificationHash, setVerificationHash] = useState('');
@@ -22,8 +23,8 @@ function VerifyVote() {
     setVerificationResult(null);
     
     try {
-      const actor = API.initializeActor(identity);
-      const result = await actor.verify_vote(verificationHash.trim());
+      // const actor = API.initializeActor(identity);
+      const result = await digivoter_backend.verify_vote(verificationHash.trim());
       setVerificationResult(result);
     } catch (err) {
       setError('Failed to verify vote. Please check your hash and try again.');
