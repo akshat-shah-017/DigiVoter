@@ -33,8 +33,6 @@ DigiVoter leverages the power of the Internet Computer to create a robust and tr
 * **Backend Canisters:** [Rust](https://www.rust-lang.org/) - A performant and memory-safe language used for writing secure smart contracts (canisters) on the Internet Computer.
 * **Blockchain Platform:** [Internet Computer Protocol (ICP)](https://internetcomputer.org/) - The underlying decentralized cloud platform providing compute, storage, and consensus.
 * **IC SDK:** `dfx` - The command-line interface and SDK for developing and deploying applications on the Internet Computer.
-* **State Management:** (Specify if used, e.g., Redux, Zustand, Context API)
-* **Styling:** (Specify if used, e.g., CSS Modules, Tailwind CSS, Material UI)
 
 ## 🚀 Getting Started
 
